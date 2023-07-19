@@ -5,8 +5,9 @@ const NodeCache = require("node-cache");
 const session = require("express-session");
 const opn = require("open");
 const app = express();
-
+const SKU = require("./sku.js");
 const PORT = 3000;
+const matches = [];
 
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
@@ -174,14 +175,18 @@ const getContact = async (accessToken) => {
       "===> request.get('https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1')"
     );
     const result = await request.get(
-      "https://api.hubapi.com/contacts/v1/contact/email/bh@hubspot.com/profile",
+      "https://api.hubapi.com/crm-objects/v1/objects/products/paged?properties=hs_sku",
       {
         headers: headers,
       }
     );
 
     console.log("results");
-    console.log(JSON.parse(result));
+    x = JSON.parse(result);
+    y = JSON.parse(asd);
+
+    console.log(x.objects[0].properties.hs_sku.value);
+
     return JSON.parse(result);
   } catch (e) {
     console.error("  > Unable to retrieve contact");
@@ -201,9 +206,22 @@ const displayContactName = (res, contact) => {
     return;
   }
   ///////////////////////////////////
-  console.log(contact);
-  const { firstname, lastname } = contact.properties;
-  res.write(`<p>Contact name: ${firstname.value} ${lastname.value} </p>`);
+  //compares sku array to sku values in objects array
+  for (let i = 0; i < SKU.length; i++) {
+    for (let j = 0; j < contact.objects.length; j++) {
+      if (SKU[i] == contact.objects[j].properties.hs_sku.value) {
+        matches.push(contact.objects[j].objectId);
+        console.log(matches);
+      } else {
+        console.log(
+          "no found",
+          SKU[i],
+          contact.objects[j].properties.hs_sku.value
+        );
+      }
+    }
+  }
+  res.write(`<p>Contact name: ${contact}  </p>`);
 };
 
 app.get("/", async (req, res) => {
