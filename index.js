@@ -183,8 +183,6 @@ const getContact = async (accessToken) => {
 
     console.log("results");
     x = JSON.parse(result);
-    y = JSON.parse(asd);
-
     console.log(x.objects[0].properties.hs_sku.value);
 
     return JSON.parse(result);
@@ -221,9 +219,82 @@ const displayContactName = (res, contact) => {
       }
     }
   }
+
   res.write(`<p>Contact name: ${contact}  </p>`);
 };
 
+const AddItems = async (accessToken) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+  };
+  //CREATES LINE ITEM
+
+  const requestData = [
+    {
+      name: "hs_product_id",
+      value: "2173354556",
+    },
+    {
+      name: "quantity",
+      value: "50",
+    },
+    {
+      name: "price",
+      value: "9.50",
+    },
+    {
+      name: "name",
+      value:
+        "A custom name for the product for this line item. Discounting 5% on bulk purchase.",
+    },
+  ];
+
+  const x = await request(
+    "https://api.hubapi.com/crm-objects/v1/objects/line_items",
+    {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: headers,
+    }
+  );
+  y = JSON.parse(x);
+  objectId = y.objectId;
+
+  //ASSOCIATES LINE ITEM WITH DEAL
+
+  const assocdata = {
+    fromObjectId: objectId,
+    toObjectId: 14234926682,
+    category: "HUBSPOT_DEFINED",
+    definitionId: 20,
+  };
+
+  fetch("https://api.hubapi.com/crm-associations/v1/associations", {
+    method: "PUT",
+    body: JSON.stringify(requestData),
+    headers: headers,
+  })
+    .then((response) => response.json())
+    .then((json) => console.log(json));
+
+  console.log("line item created");
+
+  /*
+  request.put({
+    url: '//api.hubapi.com/crm-associations/v1/associations',
+    json: true,
+    body: {
+      "fromObjectId": 496346,
+      "toObjectId": 176602,
+      "category": "HUBSPOT_DEFINED",
+      "definitionId": 15
+    }
+    
+  })*/
+};
+
+//main method
 app.get("/", async (req, res) => {
   res.setHeader("Content-Type", "text/html");
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
@@ -234,6 +305,7 @@ app.get("/", async (req, res) => {
     res.write(`<h4>Access token: ${accessToken}</h4>`);
     //calls displayContactName to parse data out of api call
     displayContactName(res, contact);
+    AddItems(accessToken);
   } else {
     res.write(`<a href="/install"><h3>Install the app</h3></a>`);
   }
