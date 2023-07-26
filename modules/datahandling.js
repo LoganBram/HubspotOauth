@@ -74,7 +74,7 @@ const MatchSKUs_GetProductid = (res, ProductPageSKUs) => {
         );
       } else {
         console.log(
-          "no found",
+          "NOT MATCHED",
           SKU[i],
           ProductPageSKUs.objects[j].properties.hs_sku.value
         );

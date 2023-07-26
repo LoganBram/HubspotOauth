@@ -175,11 +175,11 @@ app.get("/", async (req, res) => {
     //returns
     const ProductPageSKUs = await getAllProductSKU(accessToken);
     res.write(`<h4>Access token: ${accessToken}</h4>`);
-    //Takes in all productpage data, compares all the SKU's in the product page to
+    //Takes in all productpage data, compares all the SKU's in the hubspot product page to
     //our array of the SKU'S we want, and returns nothing right now, but
-    //will later return all the object ID's of the SKU's that match so we can make a deal from them
+    //will later return all product ID's of the SKU's that match so we can make a deal from them in AddItems
     MatchSKUs_GetProductid(res, ProductPageSKUs);
-    //adds lineitems and assocaites them with the correct deal
+    //adds lineitems and associates them with the correct deal based on
     AddItems(accessToken);
   } else {
     res.write(`<a href="/install"><h3>Install the app</h3></a>`);
