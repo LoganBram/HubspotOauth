@@ -158,7 +158,7 @@ const isAuthorized = (userId) => {
 
 //Using an Access Token to Query the HubSpot API
 
-const getContact = async (accessToken) => {
+const getAllProductSKU = async (accessToken) => {
   console.log("");
   console.log(
     "=== Retrieving a contact from HubSpot using the access token ==="
@@ -181,7 +181,7 @@ const getContact = async (accessToken) => {
       }
     );
 
-    console.log("results");
+    console.log("Obtained SKU'S from product page, here is one");
     x = JSON.parse(result);
     console.log(x.objects[0].properties.hs_sku.value);
 
@@ -196,20 +196,19 @@ const getContact = async (accessToken) => {
 //   Displaying information to the user   //
 //========================================//
 
-const displayContactName = (res, contact) => {
+const MatchSKUs_GetObjectid = (res, contact) => {
   if (contact.status === "error") {
     res.write(
       `<p>Unable to retrieve contact! Error Message: ${contact.message}</p>`
     );
     return;
   }
-  ///////////////////////////////////
+
   //compares sku array to sku values in objects array
   for (let i = 0; i < SKU.length; i++) {
     for (let j = 0; j < contact.objects.length; j++) {
       if (SKU[i] == contact.objects[j].properties.hs_sku.value) {
         matches.push(contact.objects[j].objectId);
-        console.log(matches);
       } else {
         console.log(
           "no found",
@@ -219,6 +218,7 @@ const displayContactName = (res, contact) => {
       }
     }
   }
+  console.log(matches);
 
   res.write(`<p>Contact name: ${contact}  </p>`);
 };
@@ -283,11 +283,14 @@ app.get("/", async (req, res) => {
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
   if (isAuthorized(req.sessionID)) {
     const accessToken = await getAccessToken(req.sessionID);
-    //runs api call here ---------
-    const contact = await getContact(accessToken);
+    //returns
+    const ProductPageSKUs = await getAllProductSKU(accessToken);
     res.write(`<h4>Access token: ${accessToken}</h4>`);
-    //calls displayContactName to parse data out of api call
-    displayContactName(res, contact);
+    //Takes in all productpage data, compares all the SKU's in the product page to
+    //our array of the SKU'S we want, and returns nothing right now, but
+    //will later return all the object ID's of the SKU's that match so we can make a deal from them
+    MatchSKUs_GetObjectid(res, ProductPageSKUs);
+    //adds lineitems and assocaites them with the correct deal
     AddItems(accessToken);
   } else {
     res.write(`<a href="/install"><h3>Install the app</h3></a>`);
