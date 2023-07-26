@@ -196,31 +196,40 @@ const getAllProductSKU = async (accessToken) => {
 //   Displaying information to the user   //
 //========================================//
 
-const MatchSKUs_GetObjectid = (res, contact) => {
-  if (contact.status === "error") {
+const MatchSKUs_GetProductid = (res, ProductPageSKUs) => {
+  if (ProductPageSKUs.status === "error") {
     res.write(
-      `<p>Unable to retrieve contact! Error Message: ${contact.message}</p>`
+      `<p>Unable to retrieve contact! Error Message: ${ProductPageSKUs.message}</p>`
     );
     return;
   }
 
-  //compares sku array to sku values in objects array
+  //compares product page SKU values to our array of the SKU values we want,
+  //then adds product ID of matching SKU's
   for (let i = 0; i < SKU.length; i++) {
-    for (let j = 0; j < contact.objects.length; j++) {
-      if (SKU[i] == contact.objects[j].properties.hs_sku.value) {
-        matches.push(contact.objects[j].objectId);
+    for (let j = 0; j < ProductPageSKUs.objects.length; j++) {
+      if (SKU[i] == ProductPageSKUs.objects[j].properties.hs_sku.value) {
+        matches.push(ProductPageSKUs.objects[j].objectId);
+        console.log(
+          "SKU VALUE:",
+          SKU[i],
+          "matches with:",
+          ProductPageSKUs.objects[j].properties.hs_sku.value,
+          "adding product id:",
+          ProductPageSKUs.objects[j].objectId,
+          "to array that will be used for creation"
+        );
       } else {
         console.log(
           "no found",
           SKU[i],
-          contact.objects[j].properties.hs_sku.value
+          ProductPageSKUs.objects[j].properties.hs_sku.value
         );
       }
     }
   }
-  console.log(matches);
 
-  res.write(`<p>Contact name: ${contact}  </p>`);
+  res.write(`<p>Contact name: ${ProductPageSKUs}  </p>`);
 };
 
 const AddItems = async (accessToken) => {
@@ -238,10 +247,6 @@ const AddItems = async (accessToken) => {
     {
       name: "quantity",
       value: "50",
-    },
-    {
-      name: "price",
-      value: "9.50",
     },
   ];
   //sends post request to generate the line item, even if the line item has already been created
@@ -289,7 +294,7 @@ app.get("/", async (req, res) => {
     //Takes in all productpage data, compares all the SKU's in the product page to
     //our array of the SKU'S we want, and returns nothing right now, but
     //will later return all the object ID's of the SKU's that match so we can make a deal from them
-    MatchSKUs_GetObjectid(res, ProductPageSKUs);
+    MatchSKUs_GetProductid(res, ProductPageSKUs);
     //adds lineitems and assocaites them with the correct deal
     AddItems(accessToken);
   } else {
