@@ -228,7 +228,7 @@ const AddItems = async (accessToken) => {
     Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
   };
-  //CREATES LINE ITEM
+  //This is the data for the line item, changing product id value changes the product being targeted
 
   const requestData = [
     {
@@ -243,12 +243,9 @@ const AddItems = async (accessToken) => {
       name: "price",
       value: "9.50",
     },
-    {
-      name: "name",
-      value:
-        "A custom name for the product for this line item. Discounting 5% on bulk purchase.",
-    },
   ];
+  //sends post request to generate the line item, even if the line item has already been created
+  //this is necessary anyways to get unique object ID, which is associated later
 
   const x = await request(
     "https://api.hubapi.com/crm-objects/v1/objects/line_items",
@@ -261,7 +258,9 @@ const AddItems = async (accessToken) => {
   y = JSON.parse(x);
   objectId = y.objectId;
 
-  //ASSOCIATES LINE ITEM WITH DEAL
+  //associates the generated lien item based on the object ID
+
+  console.log("line item created");
 
   const assocdata = {
     fromObjectId: objectId,
@@ -270,31 +269,15 @@ const AddItems = async (accessToken) => {
     definitionId: 20,
   };
 
+  //sends put request
   fetch("https://api.hubapi.com/crm-associations/v1/associations", {
     method: "PUT",
-    body: JSON.stringify(requestData),
+    body: JSON.stringify(assocdata),
     headers: headers,
-  })
-    .then((response) => response.json())
-    .then((json) => console.log(json));
-
-  console.log("line item created");
-
-  /*
-  request.put({
-    url: '//api.hubapi.com/crm-associations/v1/associations',
-    json: true,
-    body: {
-      "fromObjectId": 496346,
-      "toObjectId": 176602,
-      "category": "HUBSPOT_DEFINED",
-      "definitionId": 15
-    }
-    
-  })*/
+  }).then(console.log("association success"));
 };
 
-//main method
+//--------------------------- ACTS AS MAIN METHOD ----------------------------
 app.get("/", async (req, res) => {
   res.setHeader("Content-Type", "text/html");
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
