@@ -16,6 +16,7 @@ const {
   hello,
   getAllProductSKU,
   MatchSKUs_GetProductid,
+  AddItems,
 } = require("./modules/datahandling.js");
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
@@ -163,61 +164,6 @@ const isAuthorized = (userId) => {
 };
 
 //Using an Access Token to Query the HubSpot API
-
-//========================================//
-//   Displaying information to the user   //
-//========================================//
-
-const AddItems = async (accessToken) => {
-  const headers = {
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-  };
-  //This is the data for the line item, changing product id value changes the product being targeted
-
-  const requestData = [
-    {
-      name: "hs_product_id",
-      value: "2173354556",
-    },
-    {
-      name: "quantity",
-      value: "50",
-    },
-  ];
-  //sends post request to generate the line item, holds the object id that is returned for the put assocation
-
-  const x = await request(
-    "https://api.hubapi.com/crm-objects/v1/objects/line_items",
-    {
-      method: "POST",
-      body: JSON.stringify(requestData),
-      headers: headers,
-    }
-  );
-  y = JSON.parse(x);
-  objectId = y.objectId;
-
-  //associates the generated line item based on the object ID
-
-  console.log("line item created");
-
-  //uses objectID from lineitem post request to
-
-  const assocdata = {
-    fromObjectId: objectId,
-    toObjectId: 14234926682,
-    category: "HUBSPOT_DEFINED",
-    definitionId: 20,
-  };
-
-  //sends put request
-  fetch("https://api.hubapi.com/crm-associations/v1/associations", {
-    method: "PUT",
-    body: JSON.stringify(assocdata),
-    headers: headers,
-  }).then(console.log("association success"));
-};
 
 //--------------------------- ACTS AS MAIN METHOD ----------------------------
 app.get("/", async (req, res) => {
