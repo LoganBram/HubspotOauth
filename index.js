@@ -12,6 +12,12 @@ const matches = [];
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
+const {
+  hello,
+  getAllProductSKU,
+  MatchSKUs_GetProductid,
+} = require("./modules/datahandling.js");
+
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
   throw new Error("Missing CLIENT_ID or CLIENT_SECRET environment variable.");
 }
@@ -158,79 +164,9 @@ const isAuthorized = (userId) => {
 
 //Using an Access Token to Query the HubSpot API
 
-const getAllProductSKU = async (accessToken) => {
-  console.log("");
-  console.log(
-    "=== Retrieving a contact from HubSpot using the access token ==="
-  );
-  try {
-    const headers = {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    };
-    console.log(
-      "===> Replace the following request.get() to test other API calls"
-    );
-    console.log(
-      "===> request.get('https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1')"
-    );
-    const result = await request.get(
-      "https://api.hubapi.com/crm-objects/v1/objects/products/paged?properties=hs_sku",
-      {
-        headers: headers,
-      }
-    );
-
-    console.log("Obtained SKU'S from product page, here is one");
-    x = JSON.parse(result);
-    console.log(x.objects[0].properties.hs_sku.value);
-
-    return JSON.parse(result);
-  } catch (e) {
-    console.error("  > Unable to retrieve contact");
-    return JSON.parse(e.response.body);
-  }
-};
-
 //========================================//
 //   Displaying information to the user   //
 //========================================//
-
-const MatchSKUs_GetProductid = (res, ProductPageSKUs) => {
-  if (ProductPageSKUs.status === "error") {
-    res.write(
-      `<p>Unable to retrieve contact! Error Message: ${ProductPageSKUs.message}</p>`
-    );
-    return;
-  }
-
-  //compares product page SKU values to our array of the SKU values we want,
-  //then adds product ID of matching SKU's
-  for (let i = 0; i < SKU.length; i++) {
-    for (let j = 0; j < ProductPageSKUs.objects.length; j++) {
-      if (SKU[i] == ProductPageSKUs.objects[j].properties.hs_sku.value) {
-        matches.push(ProductPageSKUs.objects[j].objectId);
-        console.log(
-          "SKU VALUE:",
-          SKU[i],
-          "matches with:",
-          ProductPageSKUs.objects[j].properties.hs_sku.value,
-          "adding product id:",
-          ProductPageSKUs.objects[j].objectId,
-          "to array that will be used for creation"
-        );
-      } else {
-        console.log(
-          "no found",
-          SKU[i],
-          ProductPageSKUs.objects[j].properties.hs_sku.value
-        );
-      }
-    }
-  }
-
-  res.write(`<p>Contact name: ${ProductPageSKUs}  </p>`);
-};
 
 const AddItems = async (accessToken) => {
   const headers = {
@@ -249,8 +185,7 @@ const AddItems = async (accessToken) => {
       value: "50",
     },
   ];
-  //sends post request to generate the line item, even if the line item has already been created
-  //this is necessary anyways to get unique object ID, which is associated later
+  //sends post request to generate the line item, holds the object id that is returned for the put assocation
 
   const x = await request(
     "https://api.hubapi.com/crm-objects/v1/objects/line_items",
@@ -263,9 +198,11 @@ const AddItems = async (accessToken) => {
   y = JSON.parse(x);
   objectId = y.objectId;
 
-  //associates the generated lien item based on the object ID
+  //associates the generated line item based on the object ID
 
   console.log("line item created");
+
+  //uses objectID from lineitem post request to
 
   const assocdata = {
     fromObjectId: objectId,
@@ -287,6 +224,7 @@ app.get("/", async (req, res) => {
   res.setHeader("Content-Type", "text/html");
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
   if (isAuthorized(req.sessionID)) {
+    hello();
     const accessToken = await getAccessToken(req.sessionID);
     //returns
     const ProductPageSKUs = await getAllProductSKU(accessToken);
