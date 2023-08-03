@@ -166,10 +166,12 @@ const isAuthorized = (userId) => {
 //Using an Access Token to Query the HubSpot API
 
 //--------------------------- ACTS AS MAIN METHOD ----------------------------
-app.get("/", async (req, res) => {
+app.get("/oauthtrigg", async (req, res) => {
   res.setHeader("Content-Type", "text/html");
-  const numbers = await req.query.array;
-  console.log(numbers);
+  //accepts SKU values via url
+  const SKUaccept = await req.query.array;
+  const SKUarr = SKUaccept.split(",");
+
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
   if (isAuthorized(req.sessionID)) {
     hello();
