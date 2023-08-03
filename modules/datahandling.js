@@ -89,11 +89,11 @@ const AddItems = async (accessToken, ItemArray_OfProductIds) => {
   //create a new deal
 
   //add each item from the pricesheet to the deal
-  const CreateLineItem = async () => {
+  const CreateLineItem = async (ProductId) => {
     const requestData = [
       {
         name: "hs_product_id",
-        value: "2173354556",
+        value: ProductId,
       },
       {
         name: "quantity",
@@ -112,8 +112,7 @@ const AddItems = async (accessToken, ItemArray_OfProductIds) => {
       }
     );
     y = JSON.parse(x);
-    objectId = y.objectId;
-
+    return y.objectId;
     console.log("line item created");
   };
 
@@ -121,7 +120,7 @@ const AddItems = async (accessToken, ItemArray_OfProductIds) => {
     const requestData = {
       properties: {
         amount: "1500.00",
-        dealname: "good",
+        dealname: "good1",
       },
     };
 
@@ -134,14 +133,14 @@ const AddItems = async (accessToken, ItemArray_OfProductIds) => {
       }
     );
     response = JSON.parse(request_response);
-    dealid = response.id;
+    return response.id;
   };
 
   //uses objectID from lineitem post request to associate line item with deal
-  const AssociateWithDeal = async () => {
+  const AssociateWithDeal = async (DealId, LineItemId) => {
     const assocdata = {
-      fromObjectId: objectId,
-      toObjectId: dealid,
+      fromObjectId: LineItemId,
+      toObjectId: DealId,
       category: "HUBSPOT_DEFINED",
       definitionId: 20,
     };
@@ -154,7 +153,14 @@ const AddItems = async (accessToken, ItemArray_OfProductIds) => {
     }).then(console.log("association success"));
   };
 
-  CreateDeal();
+  const DealId = await CreateDeal();
+  for (let i = 0; i < ItemArray_OfProductIds.length; i++) {
+    //passes product id, creates line item and returns lineitem ID
+    const LineItemId = await CreateLineItem(ItemArray_OfProductIds[i]);
+    console.log(DealId, LineItemId, "here");
+    //associates line item with deal
+    AssociateWithDeal(DealId, LineItemId);
+  }
 };
 
 module.exports = {
