@@ -178,15 +178,17 @@ app.get("/oauthtrigg", async (req, res) => {
   if (isAuthorized(req.sessionID)) {
     console.log(SKUarr);
     const accessToken = await getAccessToken(req.sessionID);
-    //returns
     const ProductPageSKUs = await getAllProductSKU(accessToken);
     res.write(`<h4>Access token: ${accessToken}</h4>`);
     //Takes in all productpage data, compares all the SKU's in the product page to
-    //our array of the SKU'S we want, and returns nothing right now, but
-    //will later return all the object ID's of the SKU's that match so we can make a deal from them
-    MatchSKUs_GetProductid(res, SKUarr, ProductPageSKUs);
-    //adds lineitems and assocaites them with the correct deal
-    AddItems(accessToken);
+    //returns all the object ID's of the SKU's that match so we can make a deal from them
+    const ItemArray_OfProductIds = MatchSKUs_GetProductid(
+      res,
+      SKUarr,
+      ProductPageSKUs
+    );
+    //adds lineitems and associates them with the correct deal
+    AddItems(accessToken, ItemArray_OfProductIds);
   } else {
     res.write(`<a href="/install"><h3>Install the app</h3></a>`);
   }

@@ -10,23 +10,13 @@ const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 const hello = () => {
   console.log("hello");
 };
-
+//gets all SKU values from product page on hubspot
 const getAllProductSKU = async (accessToken) => {
-  console.log("");
-  console.log(
-    "=== Retrieving a contact from HubSpot using the access token ==="
-  );
   try {
     const headers = {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     };
-    console.log(
-      "===> Replace the following request.get() to test other API calls"
-    );
-    console.log(
-      "===> request.get('https://api.hubapi.com/contacts/v1/lists/all/contacts/all?count=1')"
-    );
     const result = await request.get(
       "https://api.hubapi.com/crm-objects/v1/objects/products/paged?properties=hs_sku",
       {
@@ -55,6 +45,7 @@ const MatchSKUs_GetProductid = (res, SKU, ProductPageSKUs) => {
     );
     return;
   }
+  console.log("hello", ProductPageSKUs);
 
   //compares product page SKU values to our array of the SKU values we want,
   //then adds product ID of matching SKU's
@@ -80,59 +71,90 @@ const MatchSKUs_GetProductid = (res, SKU, ProductPageSKUs) => {
       }
     }
   }
+
   res.write(`<p>Contact name: ${SKU}  </p>`);
   res.write(`<p>Contact name: ${ProductPageSKUs}  </p>`);
+  return matches;
 };
 
-const AddItems = async (accessToken) => {
+//takes in array of object id's that have been filtered for only the ones to add
+const AddItems = async (accessToken, ItemArray_OfProductIds) => {
   const headers = {
     Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
   };
-  //This is the data for the line item, changing product id value changes the product being targeted
+  console.log(ItemArray_OfProductIds);
+  //Creates line item using productid
+  console.log(ItemArray_OfProductIds, "here");
+  //create a new deal
 
-  const requestData = [
-    {
-      name: "hs_product_id",
-      value: "2173354556",
-    },
-    {
-      name: "quantity",
-      value: "50",
-    },
-  ];
-  //sends post request to generate the line item, holds the object id that is returned for the put assocation
+  //add each item from the pricesheet to the deal
+  const CreateLineItem = async () => {
+    const requestData = [
+      {
+        name: "hs_product_id",
+        value: "2173354556",
+      },
+      {
+        name: "quantity",
+        value: "50",
+      },
+    ];
+    //sends post request to generate the line item with product details
+    // holds the object id that is returned for the put assocation
 
-  const x = await request(
-    "https://api.hubapi.com/crm-objects/v1/objects/line_items",
-    {
-      method: "POST",
-      body: JSON.stringify(requestData),
-      headers: headers,
-    }
-  );
-  y = JSON.parse(x);
-  objectId = y.objectId;
+    const x = await request(
+      "https://api.hubapi.com/crm-objects/v1/objects/line_items",
+      {
+        method: "POST",
+        body: JSON.stringify(requestData),
+        headers: headers,
+      }
+    );
+    y = JSON.parse(x);
+    objectId = y.objectId;
 
-  //associates the generated line item based on the object ID
-
-  console.log("line item created");
-
-  //uses objectID from lineitem post request to
-
-  const assocdata = {
-    fromObjectId: objectId,
-    toObjectId: 14234926682,
-    category: "HUBSPOT_DEFINED",
-    definitionId: 20,
+    console.log("line item created");
   };
 
-  //sends put request
-  fetch("https://api.hubapi.com/crm-associations/v1/associations", {
-    method: "PUT",
-    body: JSON.stringify(assocdata),
-    headers: headers,
-  }).then(console.log("association success"));
+  const CreateDeal = async () => {
+    const requestData = {
+      properties: {
+        amount: "1500.00",
+        dealname: "good",
+      },
+    };
+
+    const request_response = await request(
+      "https://api.hubapi.com/crm/v3/objects/deals",
+      {
+        method: "POST",
+        body: JSON.stringify(requestData),
+        headers: headers,
+      }
+    );
+    response = JSON.parse(request_response);
+    dealid = response.id;
+  };
+
+  //uses objectID from lineitem post request to associate line item with deal
+  const AssociateWithDeal = async () => {
+    const assocdata = {
+      fromObjectId: objectId,
+      toObjectId: dealid,
+      category: "HUBSPOT_DEFINED",
+      definitionId: 20,
+    };
+
+    //sends put request with deal as tobojectid, and line item as fromobjectid
+    fetch("https://api.hubapi.com/crm-associations/v1/associations", {
+      method: "PUT",
+      body: JSON.stringify(assocdata),
+      headers: headers,
+    }).then(console.log("association success"));
+  };
+
+  CreateDeal();
 };
 
 module.exports = {
