@@ -45,7 +45,10 @@ const getAllProductSKU = async (accessToken) => {
   }
 };
 
-const MatchSKUs_GetProductid = (res, ProductPageSKUs) => {
+//takes the productpage of SKU's and compares to SKU's passed to us from pricesheet
+//returns all object id's of the products via the SKU comparison
+//object ID's are used to create line items with the correct item
+const MatchSKUs_GetProductid = (res, SKU, ProductPageSKUs) => {
   if (ProductPageSKUs.status === "error") {
     res.write(
       `<p>Unable to retrieve contact! Error Message: ${ProductPageSKUs.message}</p>`
@@ -77,7 +80,7 @@ const MatchSKUs_GetProductid = (res, ProductPageSKUs) => {
       }
     }
   }
-
+  res.write(`<p>Contact name: ${SKU}  </p>`);
   res.write(`<p>Contact name: ${ProductPageSKUs}  </p>`);
 };
 

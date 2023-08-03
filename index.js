@@ -8,7 +8,7 @@ const app = express();
 const SKU = require("./sku.js");
 const PORT = 3000;
 const matches = [];
-
+let SKUarr = [];
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
@@ -104,7 +104,7 @@ app.get("/oauth-callback", async (req, res) => {
 
     // Once the tokens have been retrieved, use them to make a query
     // to the HubSpot API
-    res.redirect(`/`);
+    res.redirect(`/oauthtrigg`);
   }
 });
 
@@ -169,12 +169,14 @@ const isAuthorized = (userId) => {
 app.get("/oauthtrigg", async (req, res) => {
   res.setHeader("Content-Type", "text/html");
   //accepts SKU values via url
-  const SKUaccept = await req.query.array;
-  const SKUarr = SKUaccept.split(",");
+  if (SKUarr.length === 0) {
+    const SKUaccept = await req.query.array;
+    SKUarr = SKUaccept.split(",");
+  }
 
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
   if (isAuthorized(req.sessionID)) {
-    hello();
+    console.log(SKUarr);
     const accessToken = await getAccessToken(req.sessionID);
     //returns
     const ProductPageSKUs = await getAllProductSKU(accessToken);
@@ -182,7 +184,7 @@ app.get("/oauthtrigg", async (req, res) => {
     //Takes in all productpage data, compares all the SKU's in the product page to
     //our array of the SKU'S we want, and returns nothing right now, but
     //will later return all the object ID's of the SKU's that match so we can make a deal from them
-    MatchSKUs_GetProductid(res, ProductPageSKUs);
+    MatchSKUs_GetProductid(res, SKUarr, ProductPageSKUs);
     //adds lineitems and assocaites them with the correct deal
     AddItems(accessToken);
   } else {
