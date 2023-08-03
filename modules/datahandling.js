@@ -1,10 +1,6 @@
 require("dotenv").config();
-const express = require("express");
 const request = require("request-promise-native");
 const NodeCache = require("node-cache");
-const session = require("express-session");
-const opn = require("open");
-const app = express();
 const matches = [];
 const SKU = require("../sku.js");
 
@@ -12,7 +8,7 @@ const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
 const hello = () => {
-  console.log("helllo");
+  console.log("hello");
 };
 
 const getAllProductSKU = async (accessToken) => {
@@ -74,7 +70,7 @@ const MatchSKUs_GetProductid = (res, ProductPageSKUs) => {
         );
       } else {
         console.log(
-          "no found",
+          "NOT MATCHED",
           SKU[i],
           ProductPageSKUs.objects[j].properties.hs_sku.value
         );

@@ -168,6 +168,8 @@ const isAuthorized = (userId) => {
 //--------------------------- ACTS AS MAIN METHOD ----------------------------
 app.get("/", async (req, res) => {
   res.setHeader("Content-Type", "text/html");
+  const numbers = await req.query.array;
+  console.log(numbers);
   res.write(`<h2>HubSpot OAuth 2.0 Quickstart App</h2>`);
   if (isAuthorized(req.sessionID)) {
     hello();
