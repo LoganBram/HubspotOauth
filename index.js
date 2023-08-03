@@ -9,7 +9,7 @@ const SKU = require("./sku.js");
 const PORT = 3000;
 const matches = [];
 let SKUarr = [];
-let frontend_data = [];
+
 const refreshTokenStore = {};
 const accessTokenCache = new NodeCache({ deleteOnExpire: true });
 
@@ -186,7 +186,7 @@ app.get("/oauthtrigg", async (req, res) => {
     const accessToken = await getAccessToken(req.sessionID);
     const ProductPageSKUs = await getAllProductSKU(accessToken);
     res.write(`<h4>Access token: ${accessToken}</h4>`);
-    res.write(`<h4>Access token: ${frontend_data}</h4>`);
+
     //Takes in all productpage data, compares all the SKU's in the product page to
     //returns all the object ID's of the SKU's that match so we can make a deal from them
     const ItemArray_OfProductIds = MatchSKUs_GetProductid(
